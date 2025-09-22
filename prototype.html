@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Disposal App Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet.js for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple transition for view changes */
+        .view {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .hidden {
+            display: none;
+            opacity: 0;
+        }
+        .visible {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-lg p-4 border border-gray-200">
+        <div class="h-[700px] overflow-y-auto p-4">
+
+            <!-- Language Selection View -->
+            <div id="language-view" class="view visible">
+                <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Select Language</h1>
+                <div class="space-y-3">
+                    <button onclick="selectLanguage('English')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">1. English</button>
+                    <button onclick="selectLanguage('Español')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">2. Español</button>
+                    <button onclick="selectLanguage('Français')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">3. Français</button>
+                    <button onclick="selectLanguage('Deutsch')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">4. Deutsch</button>
+                    <button onclick="selectLanguage('中文')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">5. 中文</button>
+                    <button onclick="selectLanguage('日本語')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">6. 日本語</button>
+                    <button onclick="selectLanguage('한국어')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">7. 한국어</button>
+                    <p class="text-center text-gray-500 mt-4">Scroll for more</p>
+                </div>
+            </div>
+
+            <!-- Main Menu View -->
+            <div id="menu-view" class="view hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="goBack('language-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 id="menu-title" class="text-2xl font-bold text-gray-800">Menu</h1>
+                </div>
+                <div class="space-y-4">
+                    <button onclick="showView('map-view')" class="w-full text-left p-5 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition duration-200">
+                        <h2 class="font-semibold text-lg">Nearby bins</h2>
+                        <p class="text-sm opacity-90">Find the closest recycling bins.</p>
+                    </button>
+                    <button onclick="showView('videos-view')" class="w-full text-left p-5 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition duration-200">
+                        <h2 class="font-semibold text-lg">Tutorial Videos</h2>
+                        <p class="text-sm opacity-90">Learn how to recycle properly.</p>
+                    </button>
+                    <button onclick="showView('product-map-view')" class="w-full text-left p-5 bg-yellow-500 text-white rounded-lg shadow hover:bg-yellow-600 transition duration-200">
+                        <h2 class="font-semibold text-lg">Choose product to dispose</h2>
+                        <p class="text-sm opacity-90">Get specific disposal instructions.</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map View (Option 1) -->
+            <div id="map-view" class="view hidden">
+                 <div class="flex items-center mb-6">
+                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-800">Nearby Bins Map</h1>
+                </div>
+                <div class="bg-gray-200 rounded-lg aspect-square">
+                    <div id="map" class="h-full w-full rounded-lg"></div>
+                </div>
+                <p id="map-lang-info" class="text-center text-gray-600 mt-4">Map in language chosen</p>
+            </div>
+
+            <!-- Videos View (Option 2) -->
+            <div id="videos-view" class="view hidden">
+                 <div class="flex items-center mb-6">
+                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-800">Tutorial Videos</h1>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">
+                        <div class="w-10 h-10 bg-gray-300 rounded mr-4 flex-shrink-0"></div>
+                        <span>Video Title 1</span>
+                    </button>
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">
+                        <div class="w-10 h-10 bg-gray-300 rounded mr-4 flex-shrink-0"></div>
+                        <span>Video Title 2</span>
+                    </button>
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">
+                         <div class="w-10 h-10 bg-gray-300 rounded mr-4 flex-shrink-0"></div>
+                        <span>Video Title 3</span>
+                    </button>
+                     <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">
+                         <div class="w-10 h-10 bg-gray-300 rounded mr-4 flex-shrink-0"></div>
+                        <span>Video Title 4</span>
+                    </button>
+                </div>
+                <p id="video-lang-info" class="text-center text-gray-600 mt-4">Videos to choose from in language</p>
+            </div>
+
+            <!-- Video Player View (Sub-view of Option 2) -->
+            <div id="video-player-view" class="view hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="goBack('videos-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 class="text-xl font-bold text-gray-800">Playing Video</h1>
+                </div>
+                <div class="bg-black rounded-lg aspect-video flex items-center justify-center text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                 <p class="text-center text-gray-600 mt-4">Specific video plays</p>
+            </div>
+
+            <!-- Product Map View (Option 3) -->
+            <div id="product-map-view" class="view hidden">
+                 <div class="flex items-center mb-6">
+                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-800">Disposal Map</h1>
+                </div>
+                <div class="bg-gray-200 rounded-lg p-4 aspect-square">
+                     <div class="grid grid-cols-5 gap-1 h-full">
+                        <!-- Generating a mock grid for map visualization -->
+                        <script>
+                            for(let i = 0; i < 25; i++) {
+                                const isBin = Math.random() > 0.9;
+                                document.write(`<div class="bg-white rounded ${isBin ? 'bg-yellow-400' : 'bg-gray-300'}"></div>`);
+                            }
+                        </script>
+                    </div>
+                </div>
+                <p id="product-lang-info" class="text-center text-gray-600 mt-4">Map in language chosen to dispose specific item chosen</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Store the history of views to enable back functionality
+        let viewHistory = ['language-view'];
+        let selectedLanguage = 'English'; // Default language
+        let map = null;
+        let mapInitialized = false;
+
+        // Function to hide all views
+        function hideAllViews() {
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('visible');
+                view.classList.add('hidden');
+            });
+        }
+
+        // Function to show a specific view
+        function showView(viewId) {
+            hideAllViews();
+            document.getElementById(viewId).classList.remove('hidden');
+            document.getElementById(viewId).classList.add('visible');
+            // Add the new view to history, but don't add it if it's the same as the last one
+            if (viewHistory[viewHistory.length - 1] !== viewId) {
+                viewHistory.push(viewId);
+            }
+            // Initialize map if it's the map view and it hasn't been initialized yet
+            if (viewId === 'map-view' && !mapInitialized) {
+                initMap();
+            }
+        }
+
+        // Function to initialize the map
+        function initMap() {
+            mapInitialized = true;
+            // Coordinates for Melbourne, Australia
+            const melbourneCoords = [-37.8136, 144.9631];
+            map = L.map('map').setView(melbourneCoords, 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add some mock bin markers
+            const bins = [
+                { lat: -37.8136, lng: 144.9631, name: "Federation Square Bin" },
+                { lat: -37.8183, lng: 144.9671, name: "Flinders Street Station Bin" },
+                { lat: -37.8100, lng: 144.9644, name: "State Library Victoria Bin" },
+                { lat: -37.8225, lng: 144.9689, name: "MCG Bin" }
+            ];
+
+            bins.forEach(bin => {
+                L.marker([bin.lat, bin.lng]).addTo(map).bindPopup(bin.name);
+            });
+            
+            // This helps the map render correctly if it was initialized while hidden
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+
+
+        // Function to handle language selection
+        function selectLanguage(language) {
+            selectedLanguage = language;
+            // You can use this 'language' variable to change text content dynamically in a real app
+            console.log("Language selected:", language);
+            document.getElementById('menu-title').innerText = getMenuTitle(language);
+            showView('menu-view');
+        }
+        
+        // Mock translation for the menu title
+        function getMenuTitle(language) {
+            switch(language) {
+                case 'Español': return 'Menú';
+                case 'Français': return 'Menu';
+                case 'Deutsch': return 'Menü';
+                case '中文': return '菜单';
+                case '日本語': return 'メニュー';
+                case '한국어': return '메뉴';
+                default: return 'Menu';
+            }
+        }
+
+        // Function to go back to the previous view
+        function goBack(defaultView) {
+             // Remove the current view from history
+            if (viewHistory.length > 1) {
+                 viewHistory.pop();
+                 const previousViewId = viewHistory[viewHistory.length-1];
+                 showView(previousViewId);
+            } else {
+                 showView(defaultView);
+            }
+        }
+
+        // Initialize the first view
+        document.addEventListener('DOMContentLoaded', () => {
+            showView('language-view');
+        });
+    </script>
+</body>
+</html>
+
