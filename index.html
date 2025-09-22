@@ -3,46 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waste Disposal App Prototype</title>
+    <title>Waste Disposal App</title>
+
+    <!-- External CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Leaflet.js for Maps -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Simple transition for view changes */
-        .view {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .hidden {
-            display: none;
-            opacity: 0;
-        }
-        .visible {
-            display: block;
-            opacity: 1;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <link rel="stylesheet" href="css/styles.css">
 
-    <div class="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-lg p-4 border border-gray-200">
+    <!-- Leaflet.js for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <!-- Decorative elements -->
+    <div class="decoration-dot decoration-dot-1"></div>
+    <div class="decoration-dot decoration-dot-2"></div>
+
+    <!-- Language Indicator -->
+    <div id="lang-indicator" class="lang-indicator">
+        <span id="current-lang">English</span>
+    </div>
+
+    <div class="w-full max-w-sm mx-auto bg-white/95 backdrop-blur-lg rounded-3xl shadow-xl p-4 border border-gray-100">
         <div class="h-[700px] overflow-y-auto p-4">
 
             <!-- Language Selection View -->
             <div id="language-view" class="view visible">
-                <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Select Language</h1>
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">Select Language</h1>
+                    <p class="text-sm text-gray-500">Choose your preferred language</p>
+                </div>
                 <div class="space-y-3">
-                    <button onclick="selectLanguage('English')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">1. English</button>
-                    <button onclick="selectLanguage('Español')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">2. Español</button>
-                    <button onclick="selectLanguage('Français')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">3. Français</button>
-                    <button onclick="selectLanguage('Deutsch')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">4. Deutsch</button>
-                    <button onclick="selectLanguage('中文')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">5. 中文</button>
-                    <button onclick="selectLanguage('日本語')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">6. 日本語</button>
-                    <button onclick="selectLanguage('한국어')" class="w-full text-left p-4 bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">7. 한국어</button>
+                    <button onclick="selectLanguage('English')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇬🇧</span>
+                            <span class="font-medium">English</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <button onclick="selectLanguage('Español')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇪🇸</span>
+                            <span class="font-medium">Español</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <button onclick="selectLanguage('Français')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇫🇷</span>
+                            <span class="font-medium">Français</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <button onclick="selectLanguage('Deutsch')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇩🇪</span>
+                            <span class="font-medium">Deutsch</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <button onclick="selectLanguage('中文')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇨🇳</span>
+                            <span class="font-medium">中文</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <button onclick="selectLanguage('日本語')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇯🇵</span>
+                            <span class="font-medium">日本語</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <button onclick="selectLanguage('한국어')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇰🇷</span>
+                            <span class="font-medium">한국어</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
                     <p class="text-center text-gray-500 mt-4">Scroll for more</p>
                 </div>
             </div>
@@ -50,206 +106,241 @@
             <!-- Main Menu View -->
             <div id="menu-view" class="view hidden">
                 <div class="flex items-center mb-6">
-                    <button onclick="goBack('language-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    <button onclick="goBack('language-view')" class="p-2 rounded-full hover:bg-gray-100 mr-3 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
                     </button>
-                    <h1 id="menu-title" class="text-2xl font-bold text-gray-800">Menu</h1>
+                    <h1 id="menu-title" class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Menu</h1>
                 </div>
                 <div class="space-y-4">
-                    <button onclick="showView('map-view')" class="w-full text-left p-5 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition duration-200">
-                        <h2 class="font-semibold text-lg">Nearby bins</h2>
-                        <p class="text-sm opacity-90">Find the closest recycling bins.</p>
+                    <button onclick="showView('map-view')" class="feature-card w-full text-left p-6 rounded-2xl transition duration-200">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="font-semibold text-gray-900 text-lg mb-1">Nearby bins</h2>
+                                <p class="text-sm text-gray-500">Find the closest recycling bins.</p>
+                            </div>
+                        </div>
                     </button>
-                    <button onclick="showView('videos-view')" class="w-full text-left p-5 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition duration-200">
-                        <h2 class="font-semibold text-lg">Tutorial Videos</h2>
-                        <p class="text-sm opacity-90">Learn how to recycle properly.</p>
+                    <button onclick="showView('videos-view')" class="feature-card w-full text-left p-6 rounded-2xl transition duration-200">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="font-semibold text-gray-900 text-lg mb-1">Tutorial Videos</h2>
+                                <p class="text-sm text-gray-500">Learn how to recycle properly.</p>
+                            </div>
+                        </div>
                     </button>
-                    <button onclick="showView('product-map-view')" class="w-full text-left p-5 bg-yellow-500 text-white rounded-lg shadow hover:bg-yellow-600 transition duration-200">
-                        <h2 class="font-semibold text-lg">Choose product to dispose</h2>
-                        <p class="text-sm opacity-90">Get specific disposal instructions.</p>
+                    <button onclick="showView('product-map-view')" class="feature-card w-full text-left p-6 rounded-2xl transition duration-200">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="font-semibold text-gray-900 text-lg mb-1">Choose product to dispose</h2>
+                                <p class="text-sm text-gray-500">Get specific disposal instructions.</p>
+                            </div>
+                        </div>
                     </button>
                 </div>
             </div>
 
-            <!-- Map View (Option 1) -->
-            <div id="map-view" class="view hidden">
-                 <div class="flex items-center mb-6">
-                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            <!-- Map View -->
+            <div id="map-view" class="view hidden container-map">
+                <div class="map-header">
+                    <div class="map-title-section">
+                        <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-100 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            <span id="map-title-text">Nearby Recycling Bins</span>
+                        </h2>
+                    </div>
+                    <button onclick="goBack('menu-view')" class="map-close-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
-                    <h1 class="text-2xl font-bold text-gray-800">Nearby Bins Map</h1>
                 </div>
-                <div class="bg-gray-200 rounded-lg aspect-square">
-                    <div id="map" class="h-full w-full rounded-lg"></div>
+                <div id="map-container">
+                    <div id="map-loading" class="map-loading bg-gray-50">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="map" style="display: none;"></div>
                 </div>
-                <p id="map-lang-info" class="text-center text-gray-600 mt-4">Map in language chosen</p>
+                <div class="map-info-bar">
+                    <p id="map-lang-info" class="text-sm text-gray-600">Showing recycling bins in your area</p>
+                </div>
             </div>
 
-            <!-- Videos View (Option 2) -->
+            <!-- Videos View -->
             <div id="videos-view" class="view hidden">
-                 <div class="flex items-center mb-6">
+                <div class="flex items-center mb-6">
                     <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
                     </button>
                     <h1 class="text-2xl font-bold text-gray-800">Tutorial Videos</h1>
                 </div>
                 <div class="space-y-3">
-                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">
-                        <div class="w-10 h-10 bg-gray-300 rounded mr-4 flex-shrink-0"></div>
-                        <span>Video Title 1</span>
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl transition duration-200 transform hover:scale-[1.02]">
+                        <div class="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-lg mr-4 flex-shrink-0 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Video Title 1</span>
                     </button>
-                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">
-                        <div class="w-10 h-10 bg-gray-300 rounded mr-4 flex-shrink-0"></div>
-                        <span>Video Title 2</span>
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl transition duration-200 transform hover:scale-[1.02]">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-teal-500 rounded-lg mr-4 flex-shrink-0 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Video Title 2</span>
                     </button>
-                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">
-                         <div class="w-10 h-10 bg-gray-300 rounded mr-4 flex-shrink-0"></div>
-                        <span>Video Title 3</span>
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl transition duration-200 transform hover:scale-[1.02]">
+                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg mr-4 flex-shrink-0 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7 4v12a1 1 0 001 1h8a1 1 0 001-1V4a1 1 0 00-1-1H8a1 1 0 00-1 1zm-2 0a3 3 0 013-3h8a3 3 0 013 3v12a3 3 0 01-3 3H8a3 3 0 01-3-3V4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Video Title 3</span>
                     </button>
-                     <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-gray-50 hover:bg-gray-200 rounded-lg transition duration-200">
-                         <div class="w-10 h-10 bg-gray-300 rounded mr-4 flex-shrink-0"></div>
-                        <span>Video Title 4</span>
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl transition duration-200 transform hover:scale-[1.02]">
+                        <div class="w-12 h-12 bg-gradient-to-br from-pink-400 to-red-500 rounded-lg mr-4 flex-shrink-0 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                            </svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Video Title 4</span>
                     </button>
                 </div>
                 <p id="video-lang-info" class="text-center text-gray-600 mt-4">Videos to choose from in language</p>
             </div>
 
-            <!-- Video Player View (Sub-view of Option 2) -->
+            <!-- Video Player View -->
             <div id="video-player-view" class="view hidden">
                 <div class="flex items-center mb-6">
                     <button onclick="goBack('videos-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
                     </button>
                     <h1 class="text-xl font-bold text-gray-800">Playing Video</h1>
                 </div>
-                <div class="bg-black rounded-lg aspect-video flex items-center justify-center text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                 <p class="text-center text-gray-600 mt-4">Specific video plays</p>
-            </div>
-
-            <!-- Product Map View (Option 3) -->
-            <div id="product-map-view" class="view hidden">
-                 <div class="flex items-center mb-6">
-                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <h1 class="text-2xl font-bold text-gray-800">Disposal Map</h1>
-                </div>
-                <div class="bg-gray-200 rounded-lg p-4 aspect-square">
-                     <div class="grid grid-cols-5 gap-1 h-full">
-                        <!-- Generating a mock grid for map visualization -->
-                        <script>
-                            for(let i = 0; i < 25; i++) {
-                                const isBin = Math.random() > 0.9;
-                                document.write(`<div class="bg-white rounded ${isBin ? 'bg-yellow-400' : 'bg-gray-300'}"></div>`);
-                            }
-                        </script>
+                <div class="bg-gradient-to-br from-gray-900 to-gray-700 rounded-2xl aspect-video flex items-center justify-center text-white shadow-2xl">
+                    <div class="text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto mb-3" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                        </svg>
+                        <p class="text-sm text-gray-300">Click to play</p>
                     </div>
                 </div>
-                <p id="product-lang-info" class="text-center text-gray-600 mt-4">Map in language chosen to dispose specific item chosen</p>
+                <p class="text-center text-gray-600 mt-4">Specific video plays</p>
+            </div>
+
+            <!-- Product Disposal View -->
+            <div id="product-map-view" class="view hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-800">Disposal Guide</h1>
+                </div>
+                <!-- QR Scanner Section -->
+                <div class="mb-4">
+                    <button onclick="showQRScanner()" class="w-full p-5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center hover:from-indigo-600 hover:to-purple-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                        <span id="scan-qr-text">Scan Product QR Code</span>
+                    </button>
+                </div>
+                <!-- Product Categories -->
+                <div class="space-y-3">
+                    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider" id="categories-title">Or choose category:</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="showDisposalInstructions('plastic')" class="category-btn p-4 bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v10H5V5z"></path>
+                            </svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-plastic">Plastic</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('paper')" class="category-btn p-4 bg-white border-2 border-gray-200 hover:border-green-400 hover:bg-green-50 rounded-xl transition-all">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-paper">Paper</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('glass')" class="category-btn p-4 bg-white border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 rounded-xl transition-all">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+                            </svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-glass">Glass</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('metal')" class="category-btn p-4 bg-white border-2 border-gray-200 hover:border-gray-400 hover:bg-gray-50 rounded-xl transition-all">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-metal">Metal</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('organic')" class="category-btn p-4 bg-white border-2 border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 rounded-xl transition-all">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-organic">Organic</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('electronics')" class="category-btn p-4 bg-white border-2 border-gray-200 hover:border-red-400 hover:bg-red-50 rounded-xl transition-all">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-electronics">E-waste</span>
+                        </button>
+                    </div>
+                </div>
+                <p id="product-lang-info" class="text-center text-gray-600 mt-4">Select a category for disposal instructions</p>
+            </div>
+
+            <!-- Disposal Instructions View -->
+            <div id="disposal-instructions-view" class="view hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="goBack('product-map-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h1 id="disposal-title" class="text-xl font-bold text-gray-800">Disposal Instructions</h1>
+                </div>
+                <div id="disposal-content" class="space-y-4">
+                    <!-- Content will be dynamically inserted here -->
+                </div>
             </div>
 
         </div>
     </div>
 
-    <script>
-        // Store the history of views to enable back functionality
-        let viewHistory = ['language-view'];
-        let selectedLanguage = 'English'; // Default language
-        let map = null;
-        let mapInitialized = false;
-
-        // Function to hide all views
-        function hideAllViews() {
-            document.querySelectorAll('.view').forEach(view => {
-                view.classList.remove('visible');
-                view.classList.add('hidden');
-            });
-        }
-
-        // Function to show a specific view
-        function showView(viewId) {
-            hideAllViews();
-            document.getElementById(viewId).classList.remove('hidden');
-            document.getElementById(viewId).classList.add('visible');
-            // Add the new view to history, but don't add it if it's the same as the last one
-            if (viewHistory[viewHistory.length - 1] !== viewId) {
-                viewHistory.push(viewId);
-            }
-            // Initialize map if it's the map view and it hasn't been initialized yet
-            if (viewId === 'map-view' && !mapInitialized) {
-                initMap();
-            }
-        }
-
-        // Function to initialize the map
-        function initMap() {
-            mapInitialized = true;
-            // Coordinates for Melbourne, Australia
-            const melbourneCoords = [-37.8136, 144.9631];
-            map = L.map('map').setView(melbourneCoords, 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-
-            // Add some mock bin markers
-            const bins = [
-                { lat: -37.8136, lng: 144.9631, name: "Federation Square Bin" },
-                { lat: -37.8183, lng: 144.9671, name: "Flinders Street Station Bin" },
-                { lat: -37.8100, lng: 144.9644, name: "State Library Victoria Bin" },
-                { lat: -37.8225, lng: 144.9689, name: "MCG Bin" }
-            ];
-
-            bins.forEach(bin => {
-                L.marker([bin.lat, bin.lng]).addTo(map).bindPopup(bin.name);
-            });
-            
-            // This helps the map render correctly if it was initialized while hidden
-            setTimeout(() => map.invalidateSize(), 100);
-        }
-
-
-        // Function to handle language selection
-        function selectLanguage(language) {
-            selectedLanguage = language;
-            // You can use this 'language' variable to change text content dynamically in a real app
-            console.log("Language selected:", language);
-            document.getElementById('menu-title').innerText = getMenuTitle(language);
-            showView('menu-view');
-        }
-        
-        // Mock translation for the menu title
-        function getMenuTitle(language) {
-            switch(language) {
-                case 'Español': return 'Menú';
-                case 'Français': return 'Menu';
-                case 'Deutsch': return 'Menü';
-                case '中文': return '菜单';
-                case '日本語': return 'メニュー';
-                case '한국어': return '메뉴';
-                default: return 'Menu';
-            }
-        }
-
-        // Function to go back to the previous view
-        function goBack(defaultView) {
-             // Remove the current view from history
-            if (viewHistory.length > 1) {
-                 viewHistory.pop();
-                 const previousViewId = viewHistory[viewHistory.length-1];
-                 showView(previousViewId);
-            } else {
-                 showView(defaultView);
-            }
-        }
-
-        // Initialize the first view
-        document.addEventListener('DOMContentLoaded', () => {
-            showView('language-view');
-        });
-    </script>
+    <!-- External JavaScript -->
+    <script src="js/translations.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

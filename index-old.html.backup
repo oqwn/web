@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Disposal App Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet.js for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            position: relative;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            animation: float 20s ease-in-out infinite;
+            z-index: -1;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-50px, -50px) rotate(180deg); }
+        }
+        /* Decorative elements */
+        .decoration-dot {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .decoration-dot-1 {
+            top: 10%;
+            left: -150px;
+            animation: float-slow 25s ease-in-out infinite;
+        }
+        .decoration-dot-2 {
+            bottom: 10%;
+            right: -150px;
+            animation: float-slow 30s ease-in-out infinite reverse;
+        }
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.1); }
+        }
+        /* Simple transition for view changes */
+        .view {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .hidden {
+            display: none;
+            opacity: 0;
+        }
+        .visible {
+            display: block;
+            opacity: 1;
+        }
+        /* Language button hover effects */
+        .lang-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            background: white;
+        }
+        .lang-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+        /* Feature card animations */
+        .feature-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            background: white;
+            border: 2px solid #e5e7eb;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(99, 102, 241, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        /* Language indicator badge */
+        .lang-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .lang-indicator.show {
+            display: block;
+        }
+        /* Improved scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Loading animation for map */
+        .map-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background: rgba(229, 231, 235, 1);
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <!-- Decorative elements -->
+    <div class="decoration-dot decoration-dot-1"></div>
+    <div class="decoration-dot decoration-dot-2"></div>
+
+    <!-- Language Indicator -->
+    <div id="lang-indicator" class="lang-indicator">
+        <span id="current-lang">English</span>
+    </div>
+
+    <div class="w-full max-w-sm mx-auto bg-white/95 backdrop-blur-lg rounded-3xl shadow-xl p-4 border border-gray-100">
+        <div class="h-[700px] overflow-y-auto p-4">
+
+            <!-- Language Selection View -->
+            <div id="language-view" class="view visible">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">Select Language</h1>
+                    <p class="text-sm text-gray-500">Choose your preferred language / Seleccionar idioma</p>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="selectLanguage('English')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇬🇧</span>
+                            <span class="font-medium">English</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button onclick="selectLanguage('Español')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇪🇸</span>
+                            <span class="font-medium">Español</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button onclick="selectLanguage('Français')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇫🇷</span>
+                            <span class="font-medium">Français</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button onclick="selectLanguage('Deutsch')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇩🇪</span>
+                            <span class="font-medium">Deutsch</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button onclick="selectLanguage('中文')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇨🇳</span>
+                            <span class="font-medium">中文</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button onclick="selectLanguage('日本語')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇯🇵</span>
+                            <span class="font-medium">日本語</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button onclick="selectLanguage('한국어')" class="lang-button w-full text-left p-4 rounded-xl transition duration-200 flex items-center justify-between group">
+                        <span class="flex items-center">
+                            <span class="text-2xl mr-3">🇰🇷</span>
+                            <span class="font-medium">한국어</span>
+                        </span>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <p class="text-center text-gray-500 mt-4">Scroll for more</p>
+                </div>
+            </div>
+
+            <!-- Main Menu View -->
+            <div id="menu-view" class="view hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="goBack('language-view')" class="p-2 rounded-full hover:bg-gray-100 mr-3 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 id="menu-title" class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Menu</h1>
+                </div>
+                <div class="space-y-4">
+                    <button onclick="showView('map-view')" class="feature-card w-full text-left p-6 rounded-2xl transition duration-200">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </div>
+                            <div>
+                                <h2 class="font-semibold text-gray-900 text-lg mb-1">Nearby bins</h2>
+                                <p class="text-sm text-gray-500">Find the closest recycling bins.</p>
+                            </div>
+                        </div>
+                    </button>
+                    <button onclick="showView('videos-view')" class="feature-card w-full text-left p-6 rounded-2xl transition duration-200">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div>
+                                <h2 class="font-semibold text-gray-900 text-lg mb-1">Tutorial Videos</h2>
+                                <p class="text-sm text-gray-500">Learn how to recycle properly.</p>
+                            </div>
+                        </div>
+                    </button>
+                    <button onclick="showView('product-map-view')" class="feature-card w-full text-left p-6 rounded-2xl transition duration-200">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            </div>
+                            <div>
+                                <h2 class="font-semibold text-gray-900 text-lg mb-1">Choose product to dispose</h2>
+                                <p class="text-sm text-gray-500">Get specific disposal instructions.</p>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map View (Option 1) -->
+            <div id="map-view" class="view hidden">
+                 <div class="flex items-center mb-6">
+                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-800">Nearby Bins Map</h1>
+                </div>
+                <div class="bg-white border-2 border-gray-200 rounded-2xl aspect-square shadow-lg">
+                    <div id="map-container" class="h-full w-full rounded-2xl overflow-hidden">
+                        <div id="map-loading" class="map-loading bg-gray-50">
+                            <div class="spinner"></div>
+                        </div>
+                        <div id="map" class="h-full w-full" style="display: none;"></div>
+                    </div>
+                </div>
+                <p id="map-lang-info" class="text-center text-gray-600 mt-4">Map in language chosen</p>
+            </div>
+
+            <!-- Videos View (Option 2) -->
+            <div id="videos-view" class="view hidden">
+                 <div class="flex items-center mb-6">
+                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-800">Tutorial Videos</h1>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl transition duration-200 transform hover:scale-[1.02]">
+                        <div class="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-lg mr-4 flex-shrink-0 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Video Title 1</span>
+                    </button>
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl transition duration-200 transform hover:scale-[1.02]">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-teal-500 rounded-lg mr-4 flex-shrink-0 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Video Title 2</span>
+                    </button>
+                    <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl transition duration-200 transform hover:scale-[1.02]">
+                         <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg mr-4 flex-shrink-0 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7 4v12a1 1 0 001 1h8a1 1 0 001-1V4a1 1 0 00-1-1H8a1 1 0 00-1 1zm-2 0a3 3 0 013-3h8a3 3 0 013 3v12a3 3 0 01-3 3H8a3 3 0 01-3-3V4z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Video Title 3</span>
+                    </button>
+                     <button onclick="showView('video-player-view')" class="w-full text-left p-4 flex items-center bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl transition duration-200 transform hover:scale-[1.02]">
+                         <div class="w-12 h-12 bg-gradient-to-br from-pink-400 to-red-500 rounded-lg mr-4 flex-shrink-0 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Video Title 4</span>
+                    </button>
+                </div>
+                <p id="video-lang-info" class="text-center text-gray-600 mt-4">Videos to choose from in language</p>
+            </div>
+
+            <!-- Video Player View (Sub-view of Option 2) -->
+            <div id="video-player-view" class="view hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="goBack('videos-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 class="text-xl font-bold text-gray-800">Playing Video</h1>
+                </div>
+                <div class="bg-gradient-to-br from-gray-900 to-gray-700 rounded-2xl aspect-video flex items-center justify-center text-white shadow-2xl">
+                    <div class="text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto mb-3" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                        </svg>
+                        <p class="text-sm text-gray-300">Click to play</p>
+                    </div>
+                </div>
+                 <p class="text-center text-gray-600 mt-4">Specific video plays</p>
+            </div>
+
+            <!-- Product Map View (Option 3) -->
+            <div id="product-map-view" class="view hidden">
+                 <div class="flex items-center mb-6">
+                    <button onclick="goBack('menu-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-800">Disposal Guide</h1>
+                </div>
+                <!-- QR Scanner Section -->
+                <div class="mb-4">
+                    <button onclick="showQRScanner()" class="w-full p-5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center hover:from-indigo-600 hover:to-purple-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                        <span id="scan-qr-text">Scan Product QR Code</span>
+                    </button>
+                </div>
+                <!-- Product Categories -->
+                <div class="space-y-3">
+                    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider" id="categories-title">Or choose category:</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="showDisposalInstructions('plastic')" class="p-4 bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all transform hover:scale-105">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v10H5V5z"></path></svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-plastic">Plastic</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('paper')" class="p-4 bg-white border-2 border-gray-200 hover:border-green-400 hover:bg-green-50 rounded-xl transition-all transform hover:scale-105">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path></svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-paper">Paper</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('glass')" class="p-4 bg-white border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 rounded-xl transition-all transform hover:scale-105">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path></svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-glass">Glass</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('metal')" class="p-4 bg-white border-2 border-gray-200 hover:border-gray-400 hover:bg-gray-50 rounded-xl transition-all transform hover:scale-105">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path></svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-metal">Metal</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('organic')" class="p-4 bg-white border-2 border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 rounded-xl transition-all transform hover:scale-105">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd"></path></svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-organic">Organic</span>
+                        </button>
+                        <button onclick="showDisposalInstructions('electronics')" class="p-4 bg-white border-2 border-gray-200 hover:border-red-400 hover:bg-red-50 rounded-xl transition-all transform hover:scale-105">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path></svg>
+                            <span class="text-xs font-medium text-gray-700" id="cat-electronics">E-waste</span>
+                        </button>
+                    </div>
+                </div>
+                <p id="product-lang-info" class="text-center text-gray-600 mt-4">Select a category for disposal instructions</p>
+            </div>
+
+            <!-- Disposal Instructions View -->
+            <div id="disposal-instructions-view" class="view hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="goBack('product-map-view')" class="p-2 rounded-full hover:bg-gray-200 mr-2 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <h1 id="disposal-title" class="text-xl font-bold text-gray-800">Disposal Instructions</h1>
+                </div>
+                <div id="disposal-content" class="space-y-4">
+                    <!-- Content will be dynamically inserted here -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Store the history of views to enable back functionality
+        let viewHistory = ['language-view'];
+        let selectedLanguage = 'English'; // Default language
+        let map = null;
+        let mapInitialized = false;
+
+        // Translations object for all UI text
+        const translations = {
+            'English': {
+                selectLanguage: 'Select Language',
+                menu: 'Menu',
+                nearbyBins: 'Nearby bins',
+                nearbyBinsDesc: 'Find the closest recycling bins.',
+                tutorialVideos: 'Tutorial Videos',
+                tutorialVideosDesc: 'Learn how to recycle properly.',
+                chooseProduct: 'Choose product to dispose',
+                chooseProductDesc: 'Get specific disposal instructions.',
+                nearbyBinsMap: 'Nearby Bins Map',
+                mapInfo: 'Showing recycling bins in your area',
+                disposalMap: 'Disposal Map',
+                disposalMapInfo: 'Select location for specific disposal instructions',
+                videoTitles: ['Recycling Basics', 'Composting 101', 'Electronic Waste', 'Hazardous Materials'],
+                playingVideo: 'Playing Video',
+                videoInfo: 'Educational content about waste disposal',
+                scrollMore: 'Scroll for more',
+                scanQR: 'Scan Product QR Code',
+                categoriesTitle: 'Or choose category:',
+                plastic: 'Plastic',
+                paper: 'Paper',
+                glass: 'Glass',
+                metal: 'Metal',
+                organic: 'Organic',
+                electronics: 'E-waste',
+                disposalInstructions: 'Disposal Instructions',
+                disposalGuide: 'Disposal Guide',
+                bins: [
+                    'Federation Square Recycling',
+                    'Flinders Station Bins',
+                    'State Library Recycling Point',
+                    'MCG Waste Station'
+                ]
+            },
+            'Español': {
+                selectLanguage: 'Seleccionar Idioma',
+                menu: 'Menú',
+                nearbyBins: 'Contenedores cercanos',
+                nearbyBinsDesc: 'Encuentra los contenedores de reciclaje más cercanos.',
+                tutorialVideos: 'Videos Tutoriales',
+                tutorialVideosDesc: 'Aprende cómo reciclar correctamente.',
+                chooseProduct: 'Elegir producto para desechar',
+                chooseProductDesc: 'Obtén instrucciones específicas de eliminación.',
+                nearbyBinsMap: 'Mapa de Contenedores Cercanos',
+                mapInfo: 'Mostrando contenedores de reciclaje en tu área',
+                disposalMap: 'Mapa de Eliminación',
+                disposalMapInfo: 'Selecciona ubicación para instrucciones específicas',
+                videoTitles: ['Conceptos Básicos de Reciclaje', 'Compostaje 101', 'Residuos Electrónicos', 'Materiales Peligrosos'],
+                playingVideo: 'Reproduciendo Video',
+                videoInfo: 'Contenido educativo sobre eliminación de residuos',
+                scrollMore: 'Desplázate para más',
+                scanQR: 'Escanear código QR del producto',
+                categoriesTitle: 'O elige categoría:',
+                plastic: 'Plástico',
+                paper: 'Papel',
+                glass: 'Vidrio',
+                metal: 'Metal',
+                organic: 'Orgánico',
+                electronics: 'E-residuos',
+                disposalInstructions: 'Instrucciones de Eliminación',
+                disposalGuide: 'Guía de Eliminación',
+                bins: [
+                    'Reciclaje Plaza Federación',
+                    'Contenedores Estación Flinders',
+                    'Punto de Reciclaje Biblioteca Estatal',
+                    'Estación de Residuos MCG'
+                ]
+            },
+            'Français': {
+                selectLanguage: 'Sélectionner la langue',
+                menu: 'Menu',
+                nearbyBins: 'Poubelles à proximité',
+                nearbyBinsDesc: 'Trouvez les bacs de recyclage les plus proches.',
+                tutorialVideos: 'Vidéos Tutorielles',
+                tutorialVideosDesc: 'Apprenez à recycler correctement.',
+                chooseProduct: 'Choisir le produit à jeter',
+                chooseProductDesc: 'Obtenez des instructions d\'élimination spécifiques.',
+                nearbyBinsMap: 'Carte des Poubelles à Proximité',
+                mapInfo: 'Affichage des bacs de recyclage dans votre région',
+                disposalMap: 'Carte d\'Élimination',
+                disposalMapInfo: 'Sélectionnez l\'emplacement pour des instructions spécifiques',
+                videoTitles: ['Bases du Recyclage', 'Compostage 101', 'Déchets Électroniques', 'Matières Dangereuses'],
+                playingVideo: 'Lecture de la Vidéo',
+                videoInfo: 'Contenu éducatif sur l\'élimination des déchets',
+                scrollMore: 'Faites défiler pour plus',
+                scanQR: 'Scanner le code QR du produit',
+                categoriesTitle: 'Ou choisissez une catégorie:',
+                plastic: 'Plastique',
+                paper: 'Papier',
+                glass: 'Verre',
+                metal: 'Métal',
+                organic: 'Organique',
+                electronics: 'Déchets électroniques',
+                disposalInstructions: 'Instructions d\'Élimination',
+                disposalGuide: 'Guide d\'Élimination',
+                bins: [
+                    'Recyclage Place de la Fédération',
+                    'Poubelles Station Flinders',
+                    'Point de Recyclage Bibliothèque d\'État',
+                    'Station de Déchets MCG'
+                ]
+            },
+            'Deutsch': {
+                selectLanguage: 'Sprache wählen',
+                menu: 'Menü',
+                nearbyBins: 'Mülleimer in der Nähe',
+                nearbyBinsDesc: 'Finden Sie die nächsten Recyclingbehälter.',
+                tutorialVideos: 'Tutorial-Videos',
+                tutorialVideosDesc: 'Lernen Sie, richtig zu recyceln.',
+                chooseProduct: 'Produkt zum Entsorgen wählen',
+                chooseProductDesc: 'Erhalten Sie spezifische Entsorgungsanweisungen.',
+                nearbyBinsMap: 'Karte der Mülleimer in der Nähe',
+                mapInfo: 'Zeigt Recyclingbehälter in Ihrer Umgebung',
+                disposalMap: 'Entsorgungskarte',
+                disposalMapInfo: 'Standort für spezifische Anweisungen auswählen',
+                videoTitles: ['Recycling-Grundlagen', 'Kompostierung 101', 'Elektronikschrott', 'Gefährliche Materialien'],
+                playingVideo: 'Video wird abgespielt',
+                videoInfo: 'Bildungsinhalte zur Abfallentsorgung',
+                scrollMore: 'Scrollen für mehr',
+                scanQR: 'Produkt-QR-Code scannen',
+                categoriesTitle: 'Oder Kategorie wählen:',
+                plastic: 'Plastik',
+                paper: 'Papier',
+                glass: 'Glas',
+                metal: 'Metall',
+                organic: 'Organisch',
+                electronics: 'Elektroschrott',
+                disposalInstructions: 'Entsorgungsanweisungen',
+                disposalGuide: 'Entsorgungsführer',
+                bins: [
+                    'Recycling Federation Square',
+                    'Mülleimer Flinders Station',
+                    'Recycling-Punkt Staatsbibliothek',
+                    'Abfallstation MCG'
+                ]
+            },
+            '中文': {
+                selectLanguage: '选择语言',
+                menu: '菜单',
+                nearbyBins: '附近的垃圾箱',
+                nearbyBinsDesc: '查找最近的回收箱。',
+                tutorialVideos: '教程视频',
+                tutorialVideosDesc: '学习如何正确回收。',
+                chooseProduct: '选择要处理的产品',
+                chooseProductDesc: '获取特定的处理说明。',
+                nearbyBinsMap: '附近垃圾箱地图',
+                mapInfo: '显示您所在地区的回收箱',
+                disposalMap: '处理地图',
+                disposalMapInfo: '选择位置以获取特定说明',
+                videoTitles: ['回收基础', '堆肥101', '电子废物', '危险材料'],
+                playingVideo: '正在播放视频',
+                videoInfo: '关于废物处理的教育内容',
+                scrollMore: '向下滚动查看更多',
+                scanQR: '扫描产品二维码',
+                categoriesTitle: '或选择类别：',
+                plastic: '塑料',
+                paper: '纸张',
+                glass: '玻璃',
+                metal: '金属',
+                organic: '有机物',
+                electronics: '电子垃圾',
+                disposalInstructions: '处理说明',
+                disposalGuide: '处理指南',
+                bins: [
+                    '联邦广场回收站',
+                    '弗林德斯车站垃圾箱',
+                    '州立图书馆回收点',
+                    'MCG废物站'
+                ]
+            },
+            '日本語': {
+                selectLanguage: '言語を選択',
+                menu: 'メニュー',
+                nearbyBins: '近くのゴミ箱',
+                nearbyBinsDesc: '最寄りのリサイクルビンを見つけます。',
+                tutorialVideos: 'チュートリアルビデオ',
+                tutorialVideosDesc: '正しくリサイクルする方法を学びます。',
+                chooseProduct: '処分する製品を選択',
+                chooseProductDesc: '特定の処分方法を入手します。',
+                nearbyBinsMap: '近くのゴミ箱マップ',
+                mapInfo: 'お住まいの地域のリサイクルビンを表示',
+                disposalMap: '処分マップ',
+                disposalMapInfo: '特定の指示のために場所を選択',
+                videoTitles: ['リサイクルの基本', 'コンポスト101', '電子廃棄物', '危険物質'],
+                playingVideo: 'ビデオ再生中',
+                videoInfo: '廃棄物処理に関する教育コンテンツ',
+                scrollMore: 'スクロールして詳細を表示',
+                scanQR: '製品のQRコードをスキャン',
+                categoriesTitle: 'またはカテゴリを選択：',
+                plastic: 'プラスチック',
+                paper: '紙',
+                glass: 'ガラス',
+                metal: '金属',
+                organic: '有機物',
+                electronics: '電子廃棄物',
+                disposalInstructions: '処分方法',
+                disposalGuide: '処分ガイド',
+                bins: [
+                    'フェデレーションスクエアリサイクル',
+                    'フリンダース駅ゴミ箱',
+                    '州立図書館リサイクルポイント',
+                    'MCG廃棄物ステーション'
+                ]
+            },
+            '한국어': {
+                selectLanguage: '언어 선택',
+                menu: '메뉴',
+                nearbyBins: '근처 쓰레기통',
+                nearbyBinsDesc: '가장 가까운 재활용 통을 찾으세요.',
+                tutorialVideos: '튜토리얼 비디오',
+                tutorialVideosDesc: '올바르게 재활용하는 방법을 배우세요.',
+                chooseProduct: '폐기할 제품 선택',
+                chooseProductDesc: '특정 폐기 지침을 받으세요.',
+                nearbyBinsMap: '근처 쓰레기통 지도',
+                mapInfo: '귀하의 지역 재활용통 표시',
+                disposalMap: '폐기 지도',
+                disposalMapInfo: '특정 지침을 위한 위치 선택',
+                videoTitles: ['재활용 기초', '퇴비화 101', '전자 폐기물', '위험 물질'],
+                playingVideo: '비디오 재생 중',
+                videoInfo: '폐기물 처리에 관한 교육 콘텐츠',
+                scrollMore: '더 보려면 스크롤하세요',
+                scanQR: '제품 QR 코드 스캔',
+                categoriesTitle: '또는 카테고리 선택:',
+                plastic: '플라스틱',
+                paper: '종이',
+                glass: '유리',
+                metal: '금속',
+                organic: '유기물',
+                electronics: '전자 폐기물',
+                disposalInstructions: '폐기 지침',
+                disposalGuide: '폐기 가이드',
+                bins: [
+                    '페더레이션 스퀘어 재활용',
+                    '플린더스 역 쓰레기통',
+                    '주립 도서관 재활용 포인트',
+                    'MCG 폐기물 스테이션'
+                ]
+            }
+        };
+
+        // Function to get translated text
+        function t(key) {
+            return translations[selectedLanguage][key] || translations['English'][key];
+        }
+
+        // Function to update all UI text based on selected language
+        function updateUILanguage() {
+            // Update menu buttons
+            const menuButtons = document.querySelectorAll('#menu-view button[onclick*="showView"]');
+            if (menuButtons[0]) {
+                menuButtons[0].querySelector('h2').textContent = t('nearbyBins');
+                menuButtons[0].querySelector('p').textContent = t('nearbyBinsDesc');
+            }
+            if (menuButtons[1]) {
+                menuButtons[1].querySelector('h2').textContent = t('tutorialVideos');
+                menuButtons[1].querySelector('p').textContent = t('tutorialVideosDesc');
+            }
+            if (menuButtons[2]) {
+                menuButtons[2].querySelector('h2').textContent = t('chooseProduct');
+                menuButtons[2].querySelector('p').textContent = t('chooseProductDesc');
+            }
+
+            // Update titles
+            document.getElementById('menu-title').textContent = t('menu');
+            const mapTitle = document.querySelector('#map-view h1');
+            if (mapTitle) mapTitle.textContent = t('nearbyBinsMap');
+            const videosTitle = document.querySelector('#videos-view h1');
+            if (videosTitle) videosTitle.textContent = t('tutorialVideos');
+            const videoPlayerTitle = document.querySelector('#video-player-view h1');
+            if (videoPlayerTitle) videoPlayerTitle.textContent = t('playingVideo');
+            const productMapTitle = document.querySelector('#product-map-view h1');
+            if (productMapTitle) productMapTitle.textContent = t('disposalGuide');
+
+            // Update disposal section texts
+            const scanQR = document.getElementById('scan-qr-text');
+            if (scanQR) scanQR.textContent = t('scanQR');
+            const catTitle = document.getElementById('categories-title');
+            if (catTitle) catTitle.textContent = t('categoriesTitle');
+            const catPlastic = document.getElementById('cat-plastic');
+            if (catPlastic) catPlastic.textContent = t('plastic');
+            const catPaper = document.getElementById('cat-paper');
+            if (catPaper) catPaper.textContent = t('paper');
+            const catGlass = document.getElementById('cat-glass');
+            if (catGlass) catGlass.textContent = t('glass');
+            const catMetal = document.getElementById('cat-metal');
+            if (catMetal) catMetal.textContent = t('metal');
+            const catOrganic = document.getElementById('cat-organic');
+            if (catOrganic) catOrganic.textContent = t('organic');
+            const catElectronics = document.getElementById('cat-electronics');
+            if (catElectronics) catElectronics.textContent = t('electronics');
+
+            // Update info texts
+            document.getElementById('map-lang-info').textContent = t('mapInfo');
+            document.getElementById('video-lang-info').textContent = t('videoInfo');
+            document.getElementById('product-lang-info').textContent = t('disposalMapInfo');
+
+            // Update video titles
+            const videoButtons = document.querySelectorAll('#videos-view button[onclick*="video-player"] span');
+            t('videoTitles').forEach((title, index) => {
+                if (videoButtons[index]) {
+                    videoButtons[index].textContent = title;
+                }
+            });
+
+            // Update scroll more text
+            const scrollText = document.querySelector('#language-view p.text-center');
+            if (scrollText) scrollText.textContent = t('scrollMore');
+
+            // Update map markers if map is initialized
+            if (map && mapInitialized) {
+                updateMapMarkers();
+            }
+        }
+
+        // Function to hide all views
+        function hideAllViews() {
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('visible');
+                view.classList.add('hidden');
+            });
+        }
+
+        // Function to show a specific view
+        function showView(viewId) {
+            hideAllViews();
+            document.getElementById(viewId).classList.remove('hidden');
+            document.getElementById(viewId).classList.add('visible');
+            // Add the new view to history, but don't add it if it's the same as the last one
+            if (viewHistory[viewHistory.length - 1] !== viewId) {
+                viewHistory.push(viewId);
+            }
+            // Initialize map if it's the map view and it hasn't been initialized yet
+            if (viewId === 'map-view' && !mapInitialized) {
+                initMap();
+            }
+            // Save current state to localStorage
+            saveState();
+        }
+
+        // Store markers globally so we can update them
+        let mapMarkers = [];
+
+        // Function to initialize the map
+        function initMap() {
+            // Show loading spinner
+            document.getElementById('map-loading').style.display = 'flex';
+            document.getElementById('map').style.display = 'none';
+
+            setTimeout(() => {
+                mapInitialized = true;
+                // Coordinates for Melbourne, Australia
+                const melbourneCoords = [-37.8136, 144.9631];
+                map = L.map('map').setView(melbourneCoords, 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                // Add markers with translated names
+                updateMapMarkers();
+
+                // Hide loading spinner and show map
+                document.getElementById('map-loading').style.display = 'none';
+                document.getElementById('map').style.display = 'block';
+
+                // This helps the map render correctly if it was initialized while hidden
+                setTimeout(() => map.invalidateSize(), 100);
+            }, 500);
+        }
+
+        // Function to update map markers with translated names
+        function updateMapMarkers() {
+            // Clear existing markers
+            mapMarkers.forEach(marker => map.removeLayer(marker));
+            mapMarkers = [];
+
+            // Add some mock bin markers with translated names
+            const bins = [
+                { lat: -37.8136, lng: 144.9631, index: 0 },
+                { lat: -37.8183, lng: 144.9671, index: 1 },
+                { lat: -37.8100, lng: 144.9644, index: 2 },
+                { lat: -37.8225, lng: 144.9689, index: 3 }
+            ];
+
+            bins.forEach(bin => {
+                const marker = L.marker([bin.lat, bin.lng])
+                    .addTo(map)
+                    .bindPopup(t('bins')[bin.index]);
+                mapMarkers.push(marker);
+            });
+        }
+
+        // Function to handle language selection
+        function selectLanguage(language) {
+            selectedLanguage = language;
+            localStorage.setItem('selectedLanguage', language);
+            console.log("Language selected:", language);
+            updateUILanguage();
+            updateLanguageIndicator();
+            showView('menu-view');
+        }
+
+        // Function to update language indicator
+        function updateLanguageIndicator() {
+            const indicator = document.getElementById('lang-indicator');
+            const langText = document.getElementById('current-lang');
+            if (selectedLanguage !== 'English') {
+                indicator.classList.add('show');
+                langText.textContent = selectedLanguage;
+            } else {
+                indicator.classList.remove('show');
+            }
+        }
+
+        // Function to save state to localStorage
+        function saveState() {
+            localStorage.setItem('selectedLanguage', selectedLanguage);
+            localStorage.setItem('currentView', viewHistory[viewHistory.length - 1]);
+        }
+
+        // Function to load state from localStorage
+        function loadState() {
+            const savedLanguage = localStorage.getItem('selectedLanguage');
+            const savedView = localStorage.getItem('currentView');
+
+            if (savedLanguage) {
+                selectedLanguage = savedLanguage;
+                updateUILanguage();
+                updateLanguageIndicator();
+            }
+
+            if (savedView && savedView !== 'language-view') {
+                showView(savedView);
+            }
+        }
+
+        // Function to go back to the previous view
+        function goBack(defaultView) {
+             // Remove the current view from history
+            if (viewHistory.length > 1) {
+                 viewHistory.pop();
+                 const previousViewId = viewHistory[viewHistory.length-1];
+                 showView(previousViewId);
+            } else {
+                 showView(defaultView);
+            }
+        }
+
+        // Function to show QR scanner (mock)
+        function showQRScanner() {
+            alert(t('scanQR') + ' - ' + 'Camera functionality would be implemented here');
+        }
+
+        // Function to show disposal instructions
+        function showDisposalInstructions(category) {
+            const disposalInfo = {
+                plastic: {
+                    icon: '♻️',
+                    color: 'blue',
+                    steps: [
+                        'Rinse container to remove food residue',
+                        'Check recycling number (1-7)',
+                        'Place in yellow recycling bin',
+                        'Do not include plastic bags or film'
+                    ]
+                },
+                paper: {
+                    icon: '📄',
+                    color: 'green',
+                    steps: [
+                        'Remove any plastic windows from envelopes',
+                        'Flatten cardboard boxes',
+                        'Place in blue recycling bin',
+                        'No waxed or food-soiled paper'
+                    ]
+                },
+                glass: {
+                    icon: '🍾',
+                    color: 'purple',
+                    steps: [
+                        'Rinse bottles and jars',
+                        'Remove lids and caps',
+                        'Sort by color if required',
+                        'Place in green recycling bin'
+                    ]
+                },
+                metal: {
+                    icon: '🥫',
+                    color: 'gray',
+                    steps: [
+                        'Rinse cans and tins',
+                        'Crush aluminum cans to save space',
+                        'Place in yellow recycling bin',
+                        'Include clean aluminum foil'
+                    ]
+                },
+                organic: {
+                    icon: '🍎',
+                    color: 'yellow',
+                    steps: [
+                        'Collect food scraps in compost bin',
+                        'Include vegetable peels and coffee grounds',
+                        'No meat or dairy products',
+                        'Place in brown organic waste bin'
+                    ]
+                },
+                electronics: {
+                    icon: '💻',
+                    color: 'red',
+                    steps: [
+                        'Never place in regular bins',
+                        'Remove batteries if possible',
+                        'Take to designated e-waste collection point',
+                        'Consider donating if still functional'
+                    ]
+                }
+            };
+
+            const info = disposalInfo[category];
+            const content = document.getElementById('disposal-content');
+
+            content.innerHTML = `
+                <div class="text-center mb-6">
+                    <div class="text-6xl mb-4">${info.icon}</div>
+                    <h2 class="text-2xl font-bold text-${info.color}-600">${t(category)}</h2>
+                </div>
+                <div class="bg-${info.color}-50 rounded-lg p-4">
+                    <h3 class="font-semibold mb-3">${t('disposalInstructions')}:</h3>
+                    <ol class="space-y-2">
+                        ${info.steps.map((step, i) => `
+                            <li class="flex items-start">
+                                <span class="font-bold text-${info.color}-600 mr-2">${i + 1}.</span>
+                                <span>${step}</span>
+                            </li>
+                        `).join('')}
+                    </ol>
+                </div>
+                <div class="mt-4 p-3 bg-gray-100 rounded-lg">
+                    <p class="text-sm text-gray-600">
+                        <strong>Tip:</strong> Check local regulations as recycling rules may vary by location.
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('disposal-title').textContent = `${t('disposalInstructions')} - ${t(category)}`;
+            showView('disposal-instructions-view');
+        }
+
+        // Initialize the first view
+        document.addEventListener('DOMContentLoaded', () => {
+            showView('language-view');
+            loadState();
+        });
+    </script>
+</body>
+</html>
